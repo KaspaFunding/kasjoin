@@ -1,5 +1,7 @@
 # Kaspa Coinjoin Mixer Backend
 
+To access and test front end after building go to http://localhost:4000/index.html
+
 A privacy-focused coinjoin mixer for Kaspa cryptocurrency that supports multiple pool sizes and KNS domain resolution.
 
 ## Features
@@ -260,9 +262,6 @@ Kascoinjoin/
 4. Test thoroughly
 5. Submit a pull request
 
-## License
-
-[Add your license information here]
 
 ## Support
 
