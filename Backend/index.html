@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kascoinjoin - Multi-Pool Mixer</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #B6B6B6;
+            color: #231F20;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(35, 31, 32, 0.15);
+            border: 1px solid rgba(112, 199, 186, 0.1);
+        }
+        h1 {
+            color: #231F20;
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 600;
+            font-size: 2.2em;
+        }
+        .pool-selector {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .pool-button {
+            padding: 16px 28px;
+            border: 2px solid #70C7BA;
+            background: white;
+            color: #70C7BA;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            min-width: 140px;
+        }
+        .pool-button.active {
+            background: #70C7BA;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(112, 199, 186, 0.3);
+        }
+        .pool-button:hover {
+            background: #49EACB;
+            color: #231F20;
+            border-color: #49EACB;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(73, 234, 203, 0.3);
+        }
+        .form-group {
+            margin-bottom: 24px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #231F20;
+            font-size: 16px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #B6B6B6;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #70C7BA;
+            box-shadow: 0 0 0 3px rgba(112, 199, 186, 0.1);
+        }
+        button {
+            background: linear-gradient(135deg, #70C7BA 0%, #49EACB 100%);
+            color: white;
+            padding: 16px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+        button:hover {
+            background: linear-gradient(135deg, #49EACB 0%, #70C7BA 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(112, 199, 186, 0.4);
+        }
+        button:disabled {
+            background: #B6B6B6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .result {
+            margin-top: 24px;
+            padding: 20px;
+            border-radius: 10px;
+            background: white;
+            border-left: 4px solid #70C7BA;
+            box-shadow: 0 2px 8px rgba(35, 31, 32, 0.1);
+        }
+        .error {
+            background: #fff5f5;
+            border-left-color: #dc3545;
+            color: #721c24;
+        }
+        .success {
+            background: linear-gradient(135deg, rgba(112, 199, 186, 0.1) 0%, rgba(73, 234, 203, 0.1) 100%);
+            border-left-color: #70C7BA;
+            color: #231F20;
+        }
+        .info {
+            background: linear-gradient(135deg, rgba(0, 123, 255, 0.1) 0%, rgba(0, 86, 179, 0.1) 100%);
+            border-left-color: #007bff;
+            color: #231F20;
+        }
+        .pool-info {
+            background: linear-gradient(135deg, rgba(112, 199, 186, 0.08) 0%, rgba(73, 234, 203, 0.08) 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            border-left: 4px solid #70C7BA;
+            border: 1px solid rgba(112, 199, 186, 0.2);
+        }
+        .pool-info strong {
+            color: #231F20;
+        }
+        .pool-info ul {
+            margin: 12px 0 0 0;
+            padding-left: 20px;
+        }
+        .pool-info li {
+            margin-bottom: 8px;
+            color: #231F20;
+        }
+        .session-status {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+            border: 1px solid #B6B6B6;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-pending { background-color: #ffc107; }
+        .status-confirmed { background-color: #28a745; }
+        .status-processing { background-color: #007bff; }
+        .status-completed { background-color: #28a745; }
+        .status-error { background-color: #dc3545; }
+        .copy-button {
+            background: #6c757d;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+        .copy-button:hover {
+            background: #5a6268;
+        }
+        .qr-code {
+            text-align: center;
+            margin: 16px 0;
+        }
+        .qr-code img {
+            max-width: 200px;
+            border: 1px solid #B6B6B6;
+            border-radius: 8px;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 12px;
+            border: 1px solid #B6B6B6;
+        }
+        .button-group {
+            display: flex;
+            gap: 12px;
+        }
+        .button-group button {
+            flex: 1;
+        }
+        
+        .kns-resolving {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            color: #231F20;
+        }
+        
+        .kns-resolving:hover {
+            background: linear-gradient(135deg, #ffed4e 0%, #ffd700 100%);
+        }
+        
+        .domain-info {
+            background: rgba(112, 199, 186, 0.1);
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-top: 8px;
+            font-size: 12px;
+            color: #231F20;
+            border-left: 3px solid #70C7BA;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎭 Kascoinjoin Multi-Pool Mixer</h1>
+        
+        <div class="pool-info">
+            <strong>Available Pools:</strong>
+            <ul>
+                <li><strong>1 KAS Pool:</strong> For small amounts, lower fees, faster mixing (min 20 participants)</li>
+                <li><strong>100 KAS Pool:</strong> For medium amounts, balanced privacy and cost (min 20 participants)</li>
+                <li><strong>1000 KAS Pool:</strong> For large amounts, maximum privacy (min 20 participants)</li>
+                <li><strong>10000 KAS Pool:</strong> For very large amounts, enterprise-grade privacy (min 20 participants)</li>
+            </ul>
+            <p><strong>Note:</strong> All pools require a minimum of 20 participants to trigger mixing. Your funds will be mixed and sent to your destination address once the threshold is reached.</p>
+        </div>
+
+        <div class="pool-selector">
+            <button class="pool-button active" onclick="selectPool('1kas')">1 KAS Pool</button>
+            <button class="pool-button" onclick="selectPool('100kas')">100 KAS Pool</button>
+            <button class="pool-button" onclick="selectPool('1000kas')">1000 KAS Pool</button>
+            <button class="pool-button" onclick="selectPool('10000kas')">10000 KAS Pool</button>
+        </div>
+
+        <div class="form-group">
+            <label for="destinationAddress">Destination Address or KNS Domain:</label>
+            <input type="text" id="destinationAddress" placeholder="kaspa:... or mydomain.kas" value="kaspa:qq3tqr9f0z6t6zwcrjkk8krwwltazcl0s4gvelvakvqmj9essyq4kaksa3v0m">
+            <div style="margin-top: 8px; font-size: 12px; color: #666;">
+                <strong>Examples:</strong> kaspa:qq3tqr9f0z6t6zwcrjkk8krwwltazcl0s4gvelvakvqmj9essyq4kaksa3v0m or fund.kas
+            </div>
+            <small style="color: #666; font-size: 12px;">You can enter a Kaspa address or a KNS domain (e.g., mydomain.kas)</small>
+        </div>
+
+        <div class="button-group">
+            <button onclick="createSession()">Create Mixing Session</button>
+            <button onclick="checkStatus()" id="checkStatusBtn" disabled>Check Status</button>
+        </div>
+
+        <div id="result"></div>
+        <div id="sessionStatus"></div>
+    </div>
+
+    <script>
+        let currentPool = '1kas';
+        let currentSessionId = null;
+
+        // KNS Domain resolution function
+        async function resolveKnsDomain(domain) {
+            try {
+                // Remove any protocol or trailing slashes
+                const cleanDomain = domain.toLowerCase().replace(/^https?:\/\//, '').replace(/\/$/, '');
+                
+                // Check if it's already a Kaspa address
+                if (cleanDomain.startsWith('kaspa:')) {
+                    return cleanDomain;
+                }
+                
+                // Check if it looks like a KNS domain
+                if (!cleanDomain.includes('.kas')) {
+                    throw new Error('Invalid KNS domain format. Must end with .kas');
+                }
+                
+                console.log(`Attempting to resolve KNS domain: ${cleanDomain}`);
+                
+                // Show a message that KNS resolution is in progress
+                showDomainInfo(cleanDomain, 'Resolving KNS domain...');
+                
+                // Get domain owner using the correct KNS API endpoint
+                const ownerResponse = await fetch(`https://api.knsdomains.org/mainnet/api/v1/${cleanDomain}/owner`);
+                if (!ownerResponse.ok) {
+                    throw new Error(`KNS owner lookup failed: ${ownerResponse.status} ${ownerResponse.statusText}`);
+                }
+                
+                const ownerData = await ownerResponse.json();
+                if (!ownerData.success || !ownerData.data || !ownerData.data.owner) {
+                    throw new Error('Domain owner not found');
+                }
+                
+                console.log(`KNS domain ${cleanDomain} resolved to: ${ownerData.data.owner}`);
+                
+                // Show domain resolution info
+                showDomainInfo(cleanDomain, ownerData.data.owner);
+                
+                return ownerData.data.owner;
+                
+            } catch (error) {
+                console.error('KNS resolution error:', error);
+                throw new Error(`Failed to resolve KNS domain: ${error.message}`);
+            }
+        }
+
+        // Show domain information
+        function showDomainInfo(domain, resolvedAddress) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `
+                <div class="domain-info">
+                    <strong>KNS Domain Resolved:</strong><br>
+                    <strong>Domain:</strong> ${domain}<br>
+                    <strong>Address:</strong> ${resolvedAddress}
+                </div>
+            `;
+        }
+
+        // Validate and resolve destination address
+        async function validateAndResolveDestination(input) {
+            const trimmed = input.trim();
+            
+            if (!trimmed) {
+                throw new Error('Please enter a destination address or KNS domain');
+            }
+            
+            // If it's already a Kaspa address, validate format
+            if (trimmed.startsWith('kaspa:')) {
+                if (!/^kaspa:[a-zA-Z0-9]{62}$/.test(trimmed)) {
+                    throw new Error('Invalid Kaspa address format');
+                }
+                return trimmed;
+            }
+            
+            // If it looks like a KNS domain, resolve it
+            if (trimmed.includes('.kas')) {
+                return await resolveKnsDomain(trimmed);
+            }
+            
+            // If it doesn't start with kaspa: but doesn't have .kas, assume it's a KNS domain
+            if (!trimmed.includes('.')) {
+                return await resolveKnsDomain(trimmed + '.kas');
+            }
+            
+            throw new Error('Please enter a valid Kaspa address (kaspa:...) or KNS domain (.kas)');
+        }
+
+        function selectPool(pool) {
+            currentPool = pool;
+            
+            // Update button states
+            document.querySelectorAll('.pool-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Reset session state
+            currentSessionId = null;
+            document.getElementById('checkStatusBtn').disabled = true;
+            document.getElementById('sessionStatus').innerHTML = '';
+            
+            // Update form based on pool
+            updateFormForPool(pool);
+        }
+
+        function updateFormForPool(pool) {
+            const destinationInput = document.getElementById('destinationAddress');
+            
+            // You could add pool-specific validation or UI changes here
+            console.log(`Selected pool: ${pool}`);
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        }
+
+        async function createSession() {
+            const destinationInput = document.getElementById('destinationAddress').value;
+            const resultDiv = document.getElementById('result');
+            
+            if (!destinationInput) {
+                resultDiv.innerHTML = '<div class="result error">Please enter a destination address or KNS domain</div>';
+                return;
+            }
+
+            try {
+                resultDiv.innerHTML = '<div class="result info">Validating destination...</div>';
+                
+                // Resolve KNS domain if needed
+                const destinationAddress = await validateAndResolveDestination(destinationInput);
+                
+                // Small delay to show domain info if it was resolved
+                if (destinationInput !== destinationAddress) {
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                }
+                
+                resultDiv.innerHTML = '<div class="result info">Creating session...</div>';
+                
+                const response = await fetch(`/kascoinjoin/${currentPool}/session`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        destinationAddress: destinationAddress
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    currentSessionId = data.sessionId;
+                    document.getElementById('checkStatusBtn').disabled = false;
+                    
+                    const poolName = currentPool === '1kas' ? '1 KAS' : 
+                                   currentPool === '100kas' ? '100 KAS' : 
+                                   currentPool === '1000kas' ? '1000 KAS' : '10000 KAS';
+                    
+                    resultDiv.innerHTML = `
+                        <div class="result success">
+                            <h3>✅ Session Created Successfully!</h3>
+                            <p><strong>Pool:</strong> ${poolName}</p>
+                            <p><strong>Session ID:</strong> ${data.sessionId}</p>
+                            <p><strong>Deposit Address:</strong> ${data.depositAddress} 
+                                <button class="copy-button" onclick="copyToClipboard('${data.depositAddress}')">Copy</button>
+                            </p>
+                            <p><strong>Destination:</strong> ${destinationInput !== data.destinationAddress ? 
+                                `${destinationInput} → ${data.destinationAddress}` : 
+                                data.destinationAddress}</p>
+                            <p><strong>Status:</strong> ${data.status}</p>
+                            <hr>
+                            <p><strong>Next Steps:</strong></p>
+                            <ol>
+                                <li>Send exactly ${poolName} to the deposit address above</li>
+                                <li>Wait for 20 confirmations (approximately 10 minutes)</li>
+                                <li>Once 5+ participants join, your funds will be mixed and sent to the destination</li>
+                                <li>Use the "Check Status" button to monitor your session</li>
+                            </ol>
+                        </div>
+                    `;
+                    
+                    // Auto-check status after 30 seconds
+                    setTimeout(() => {
+                        if (currentSessionId) {
+                            checkStatus();
+                        }
+                    }, 30000);
+                    
+                } else {
+                    resultDiv.innerHTML = `<div class="result error">Error: ${data.error || 'Unknown error'}</div>`;
+                }
+            } catch (error) {
+                console.error('Session creation error:', error);
+                resultDiv.innerHTML = `<div class="result error">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function checkStatus() {
+            if (!currentSessionId) {
+                document.getElementById('sessionStatus').innerHTML = '<div class="result error">No active session to check</div>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/kascoinjoin/${currentPool}/session/${currentSessionId}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const statusDiv = document.getElementById('sessionStatus');
+                    const poolName = currentPool === '1kas' ? '1 KAS' : 
+                                   currentPool === '100kas' ? '100 KAS' : 
+                                   currentPool === '1000kas' ? '1000 KAS' : '10000 KAS';
+                    
+                    let statusClass = 'status-pending';
+                    let statusText = 'Pending';
+                    
+                    if (data.status === 'confirmed') {
+                        statusClass = 'status-confirmed';
+                        statusText = 'Confirmed';
+                    } else if (data.status === 'processing') {
+                        statusClass = 'status-processing';
+                        statusText = 'Processing';
+                    } else if (data.status === 'completed') {
+                        statusClass = 'status-completed';
+                        statusText = 'Completed';
+                    }
+                    
+                    statusDiv.innerHTML = `
+                        <div class="session-status">
+                            <h4>Session Status</h4>
+                            <p><span class="status-indicator ${statusClass}"></span><strong>Status:</strong> ${statusText}</p>
+                            <p><strong>Pool:</strong> ${poolName}</p>
+                            <p><strong>Session ID:</strong> ${data.sessionId}</p>
+                            <p><strong>Deposit Address:</strong> ${data.depositAddress}</p>
+                            <p><strong>Destination:</strong> ${data.destinationAddress}</p>
+                            <p><strong>Amount:</strong> ${poolName}</p>
+                            ${data.confirmations ? `<p><strong>Confirmations:</strong> ${data.confirmations}/20</p>` : ''}
+                            ${data.participants ? `<p><strong>Participants:</strong> ${data.participants}/5 (minimum required)</p>` : ''}
+                            ${data.readyForBatch ? `<p><strong>Ready for mixing:</strong> Yes (batch will be triggered soon)</p>` : ''}
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('sessionStatus').innerHTML = `<div class="result error">Error checking status: ${data.error || 'Unknown error'}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('sessionStatus').innerHTML = `<div class="result error">Network error checking status: ${error.message}</div>`;
+            }
+        }
+
+        // Test KNS resolution (for debugging)
+        async function testKnsResolution() {
+            const testDomain = 'test.kas'; // Replace with a real domain for testing
+            try {
+                console.log('Testing KNS resolution...');
+                const resolved = await resolveKnsDomain(testDomain);
+                console.log(`Test domain ${testDomain} resolved to: ${resolved}`);
+                alert(`KNS resolution test successful!\nDomain: ${testDomain}\nAddress: ${resolved}`);
+            } catch (error) {
+                console.error('KNS test failed:', error);
+                alert(`KNS test failed: ${error.message}`);
+            }
+        }
+
+        // Initialize with 1 KAS pool
+        updateFormForPool('1kas');
+    </script>
+</body>
+</html> 
