@@ -7,7 +7,7 @@ A privacy-focused coinjoin mixer for Kaspa cryptocurrency that supports multiple
 - **Multiple Pool Sizes**: 1 KAS, 100 KAS, 1000 KAS, and 10000 KAS pools
 - **Privacy Enhancement**: Coinjoin mixing to break transaction links
 - **KNS Integration**: Support for Kaspa Name Service domains as destination addresses
-- **Low Minimum Participants**: Only 5 participants required per pool
+- **Low Minimum Participants**: Only 20 participants required per pool
 - **Real-time Status**: Live session monitoring and status updates
 - **Web Interface**: User-friendly frontend for easy interaction
 
